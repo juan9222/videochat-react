@@ -1,0 +1,71 @@
+.Login {
+    text-align: center;
+  }
+  
+  .Login__Logo {
+    height: 37vmin;
+    pointer-events: none;
+  }
+  
+  .Login__Input {
+    max-width: 520px;
+    width: 300px;
+    height: 23px;
+    margin: 16px 0px;
+    border-radius: 10px;
+    border-style: hidden;
+    padding: 8px 14px;
+  }
+
+  .Login__Error {
+    color: #e84545;
+    font-family: arial;
+    padding: 0px 0px 14px 0px;
+  }
+
+  .Login__Form {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .Login__Button {
+    padding: 15px 38px;
+    font-size: 18px;
+    color: white;
+    background-color: #61DAFB;
+    border-style: hidden;
+    border-radius: 19px;
+    font-weight: bold;
+    text-decoration: none;
+}
+  
+  @media (prefers-reduced-motion: no-preference) {
+    .Login__Logo {
+      animation: Login-logo-spin infinite 20s linear;
+    }
+  }
+  
+    .Login__Header {
+        background-color: #282c34;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        font-size: calc(10px + 2vmin);
+        color: white;
+    }
+  
+  .Login-link {
+    color: #61dafb;
+  }
+  
+  @keyframes Login-logo-spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  
