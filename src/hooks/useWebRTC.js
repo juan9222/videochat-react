@@ -39,7 +39,6 @@ export function useWebRTC({
             })
            .catch(createOfferErrorEvent => alert(createOfferErrorEvent));
        };
-       console.log(localWebRTCPeer)
        return localWebRTCPeer;
    }
    function onRemotePeerJoined(userID) {
@@ -77,7 +76,6 @@ export function useWebRTC({
     .catch(SDPAnswerEvent => alert(SDPAnswerEvent))
    }
    function onICECandidate (ICECandidateData) {
-       console.log(ICECandidateData)
     localWebRTCPeer.addIceCandidate(new RTCIceCandidate(ICECandidateData))
     .catch(ICECandidateEvent => alert(ICECandidateEvent))
    }
