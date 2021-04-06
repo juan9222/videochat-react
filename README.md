@@ -27,7 +27,7 @@ Open [http://localhost:5000](http://localhost:5000) to view it in the browser.
 ### 6th. Open two tags of `localhost:5000` on your browser
 This simulates two peers.
 
-### 7th. Autenticate as  `jp` with password  `12345` in tab 1
+### 7th. Authenticate as  `jp` with password  `12345` in tab 1
 
 
-### 8th. Autenticate as  `ac` with password  `12345` in tab 2
+### 8th. Authenticate as  `ac` with password  `12345` in tab 2
