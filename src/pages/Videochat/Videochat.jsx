@@ -1,87 +1,66 @@
-import React, {useState, useEffect, useRef} from 'react'
+import React, {useRef} from 'react'
 import { useParams, useHistory } from "react-router-dom";
+import { useWebRTC } from  '../../hooks/useWebRTC'
+import { useSocket } from '../../hooks/useSocket'
 import './Videochat.css';
 import logo from '../../logo.svg';
 import hangup from '../../hangup.png';
-import io from 'socket.io-client';
+
 
 export default function Videochat() {
-    let history = useHistory();
-    const { id } = useParams();
-    const [localWebRTCPeer,setLocalWebRTCPeer] = useState(new RTCPeerConnection({
-        iceServers: [
-            {
-                urls: "stun:stun2.l.google.com:19302",
-            },
-            {
-                urls: 'turn:turn.bistri.com:80',
-                credential: 'homeo',
-                username: 'homeo'
-             },
-        ]
-    }))
-    // useRef will let me access to the Video in the DOM with the property current
     const localVideoRef = useRef();
     const remoteVideoRef = useRef();
-    // It's necessary to create a Ref for the file asset localhost:5000/socket.io/socket.io.js
-    const socketRef = useRef();
     const localStream = useRef();
     const remotePeer = useRef();
+    const { id } = useParams();
+    const history = useHistory();
+    const {
+        stopTracks,
+        onRemotePeerJoined,
+        onLocalPeerJoined,
+        onSDPOffer,
+        onSDPAnswer,
+        onICECandidate
+       } = useWebRTC( {
+        onEmitRegisterVideochatID,
+        onEmitICECandidate,
+        onEmitSDPOffer,
+        onEmitSDPAnswer,
+        localVideoRef,
+        remoteVideoRef,
+        localStream,
+        remotePeer
+     });
+    const {socket, onSendMessage} = useSocket({
+        remotePeerJoined : onRemotePeerJoined,
+        localPeerJoined : onLocalPeerJoined,
+        SDPOffer: onSDPOffer,
+        SDPAnswer: onSDPAnswer,
+        ICECandidate: onICECandidate
+    });
     
-    useEffect(() => {
-         // Ask the user to activate the camera and mic
-        navigator.mediaDevices.getUserMedia({ audio: true, video: true })
-        .then(audioVideoStream => {
-            localVideoRef.current.srcObject = audioVideoStream;
-            localStream.current = audioVideoStream;
-            socketRef.current = io.connect();
-            socketRef.current.emit("registerVideochatID", id);
-            socketRef.current.on("remotePeerJoined", userID => {
-                setLocalWebRTCPeer(createWebRTCPeer(userID))
-                localStream.current.getTracks().forEach(track => localWebRTCPeer.addTrack(track, localStream.current));
-                remotePeer.current = userID;
-            });
-            socketRef.current.on("localPeerJoined", userID => remotePeer.current = userID);
-            socketRef.current.on("SDPOffer", (SDPOfferData) => {
-                setLocalWebRTCPeer(createWebRTCPeer())
-                localWebRTCPeer.setRemoteDescription(new RTCSessionDescription(SDPOfferData.sdp))
-                .then(() => {
-                    localStream.current.getTracks().forEach(track => localWebRTCPeer.addTrack(track, localStream.current));
-                })
-                .then(() => {
-                    return localWebRTCPeer.createAnswer({ offerToReceiveVideo: 1 , offerToReceiveAudio: 1 });
-                })
-                .then(SDPAnswerData => {
-                    return localWebRTCPeer.setLocalDescription(SDPAnswerData);
-                })
-                .then(() => {
-                    socketRef.current.emit("SDPAnswer", {
-                        callee: SDPOfferData.caller,
-                        caller: socketRef.current.id,
-                        sdp: localWebRTCPeer.localDescription
-                    });
-                })
-            });
-            socketRef.current.on("SDPAnswer", (SDPAnswerData) => localWebRTCPeer.setRemoteDescription(new RTCSessionDescription(SDPAnswerData.sdp)).catch(SDPAnswerEvent => alert(SDPAnswerEvent)));
-            socketRef.current.on("ICECandidate", (ICECandidateData) => localWebRTCPeer.addIceCandidate(new RTCIceCandidate(ICECandidateData)).catch(ICECandidateEvent => alert(ICECandidateEvent)));
-        });
-    }, []);
-
-    const createWebRTCPeer = (userID) => {
-        localWebRTCPeer.onicecandidate = (onICECandidateEvent) => (onICECandidateEvent.candidate) ? (socketRef.current.emit("ICECandidate", {callee: remotePeer.current,candidate: onICECandidateEvent.candidate})): null;
-        localWebRTCPeer.ontrack = (onTrackEvent) => remoteVideoRef.current.srcObject = onTrackEvent.streams[0];
-        localWebRTCPeer.onnegotiationneeded = () => {
-            localWebRTCPeer.createOffer({ offerToReceiveVideo: 1 , offerToReceiveAudio: 1 })
-            .then(SDPOffer =>  localWebRTCPeer.setLocalDescription(SDPOffer))
-            .then(() => socketRef.current.emit("SDPOffer", {callee: userID, caller: socketRef.current.id, sdp:  localWebRTCPeer.localDescription}))
-            .catch(createOfferErrorEvent => alert(createOfferErrorEvent));
-        };
-        return localWebRTCPeer;
+    function onEmitRegisterVideochatID () {
+        onSendMessage("registerVideochatID", id);
     }
+    function onEmitICECandidate (ICECandidates) {
+        onSendMessage("ICECandidate", ICECandidates);
+    } 
+    function onEmitSDPOffer (SDPOfferData) {
+        onSendMessage("SDPOffer", {
+            ...SDPOfferData,
+            caller: socket.id,
+        });
 
+    } 
+    function onEmitSDPAnswer (SDPAnswerData) {
+        onSendMessage("SDPAnswer", {
+            ...SDPAnswerData,
+            caller: socket.id,
+        });
+    } 
     const handleHangUp = () => {
-        localStream.current.getTracks().forEach((track) => track.stop());
-        history.push('/')
+        stopTracks();
+        history.push('/');
     }
     return (
         <div className="Videochat">
