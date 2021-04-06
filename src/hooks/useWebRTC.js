@@ -19,14 +19,12 @@ export function useWebRTC({
        .then(audioVideoStream => {
            localVideoRef.current.srcObject = audioVideoStream;
            localStream.current = audioVideoStream;
-           debugger
            onEmitRegisterVideochatID();
        }).catch(getUserMediaError => alert(getUserMediaError));
 
    }, []);
 
    function createWebRTCPeer (userID) {
-    debugger
        localWebRTCPeer.onicecandidate = (onICECandidateEvent) => (onICECandidateEvent.candidate) ? 
        (onEmitICECandidate({ callee: remotePeer.current, candidate: onICECandidateEvent.candidate})):
         null;
@@ -41,16 +39,15 @@ export function useWebRTC({
             })
            .catch(createOfferErrorEvent => alert(createOfferErrorEvent));
        };
+       console.log(localWebRTCPeer)
        return localWebRTCPeer;
    }
    function onRemotePeerJoined(userID) {
-    debugger
     setLocalWebRTCPeer(createWebRTCPeer(userID))
     localStream.current.getTracks().forEach(track => localWebRTCPeer.addTrack(track, localStream.current));
     remotePeer.current = userID;
    }
    function onSDPOffer(SDPOfferData) {
-    debugger
         setLocalWebRTCPeer(createWebRTCPeer())
         localWebRTCPeer.setRemoteDescription(new RTCSessionDescription(SDPOfferData.sdp))
         .then(() => {
@@ -70,20 +67,17 @@ export function useWebRTC({
         })
    }
    function onLocalPeerJoined (userID) {
-    debugger
     remotePeer.current = userID
    }
    function stopTracks() {
-    debugger
     localStream.current.getTracks().forEach((track) => track.stop());
    }
    function onSDPAnswer (SDPAnswerData) {
-    debugger
     localWebRTCPeer.setRemoteDescription(new RTCSessionDescription(SDPAnswerData.sdp))
     .catch(SDPAnswerEvent => alert(SDPAnswerEvent))
    }
    function onICECandidate (ICECandidateData) {
-    debugger
+       console.log(ICECandidateData)
     localWebRTCPeer.addIceCandidate(new RTCIceCandidate(ICECandidateData))
     .catch(ICECandidateEvent => alert(ICECandidateEvent))
    }

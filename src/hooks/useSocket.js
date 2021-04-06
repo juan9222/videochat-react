@@ -1,29 +1,27 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useEffect, useCallback,useRef } from 'react'
 import io from 'socket.io-client'
 
 export function useSocket (events) {
-  const [socket, setSocket] = useState(null)
-
+  const socketRef = useRef();
   useEffect(function () {
-    const newSocket = io.connect('/')
-    setSocket(newSocket);
-    console.log(newSocket)
+    socketRef.current = io.connect();
     for (const key in events) {
-        newSocket.on(key, events[key])
+      socketRef.current.on(key, events[key])
     }
     return () => {
-      newSocket.removeAllListeners()
-      newSocket.close()
+      socketRef.current.removeAllListeners()
+      socketRef.current.close()
     }
   }, [events])
 
   const onSendMessage = useCallback((eventName, data) => {
-    debugger;
-    if(socket) socket.emit(eventName, data)
-  }, [socket])
+    if(socketRef.current) {
+      socketRef.current.emit(eventName, data)
+    }
+  }, [socketRef.current])
 
   return {
-    socket,
+    socketRef,
     onSendMessage
   }
 }

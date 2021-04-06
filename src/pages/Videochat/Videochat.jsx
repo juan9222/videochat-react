@@ -31,7 +31,7 @@ export default function Videochat() {
         localStream,
         remotePeer
      });
-    const {socket, onSendMessage} = useSocket({
+    const {socketRef, onSendMessage} = useSocket({
         remotePeerJoined : onRemotePeerJoined,
         localPeerJoined : onLocalPeerJoined,
         SDPOffer: onSDPOffer,
@@ -48,14 +48,14 @@ export default function Videochat() {
     function onEmitSDPOffer (SDPOfferData) {
         onSendMessage("SDPOffer", {
             ...SDPOfferData,
-            caller: socket.id,
+            caller: socketRef.current.id,
         });
 
     } 
     function onEmitSDPAnswer (SDPAnswerData) {
         onSendMessage("SDPAnswer", {
             ...SDPAnswerData,
-            caller: socket.id,
+            caller: socketRef.current.id,
         });
     } 
     const handleHangUp = () => {
